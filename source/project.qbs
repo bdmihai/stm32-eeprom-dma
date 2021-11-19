@@ -36,7 +36,6 @@ Project {
         "startup/startup.qbs",
         "linker/linker.qbs",
         "cmsis/cmsis.qbs",
-        "hal/hal.qbs",
         "freertos/freertos.qbs",
         "st7066u/st7066u.qbs",
         "uprintf/uprintf.qbs",

@@ -27,6 +27,7 @@
 
 #include "stm32f4xx.h"
 #include "stm32rtos.h"
+#include "task.h"
 #include "gpio.h"
 #include "led.h"
 

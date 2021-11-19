@@ -26,7 +26,6 @@
  |___________________________________________________________________________*/
 
 #include "stm32f4xx.h"
-#include "stm32f4xx_hal.h"
 #include "stm32rtos.h"
 #include "gpio.h"
 #include "system.h"
@@ -38,7 +37,7 @@ void system_init()
 
     /* configure the main internal regulator output voltage */
     SET_BIT(RCC->APB1ENR, RCC_APB1ENR_PWREN);
-    MODIFY_REG(PWR->CR, PWR_CR_VOS, PWR_REGULATOR_VOLTAGE_SCALE2);
+    MODIFY_REG(PWR->CR, PWR_CR_VOS_Msk, PWR_CR_VOS_1);
 
     /* enable the external High Speed Clock @25MHz*/
     SET_BIT(RCC->CR, RCC_CR_HSEON);

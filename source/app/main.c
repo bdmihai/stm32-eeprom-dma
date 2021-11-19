@@ -31,6 +31,7 @@
 #include "queue.h"
 #include "system.h"
 #include "gpio.h"
+#include "isr.h"
 #include "i2c.h"
 #include "printf.h"
 #include "led.h"
@@ -52,7 +53,7 @@ static void query_eeprom(uint16_t counter)
     nwrite = i2c_write(address, (uint8_t *)&counter, 1);
     if (nwrite != 1) {
         sprintf(lcd_event.row1_txt, "%s", "Write error");
-        sprintf(lcd_event.row2_txt, "%d", nread);
+        sprintf(lcd_event.row2_txt, "%d", nwrite);
     } else {
         nread = i2c_read(EEPROM_I2C_ADDRESS, (uint8_t *)lcd_event.row1_txt, 16);
         if (nread != 16) {

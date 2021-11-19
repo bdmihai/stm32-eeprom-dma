@@ -27,6 +27,7 @@
 
 #include "stm32f4xx.h"
 #include "isr.h"
+#include "gpio.h"
 
 void isr_init()
 {

@@ -31,7 +31,6 @@ Product {
 
     Depends { name: "stm32" }
     Depends { name: "cmsis" }
-    Depends { name: "hal" }
     Depends { name: "freertos" }
     Depends { name: "uprintf" }
     Depends { name: "st7066u" }
