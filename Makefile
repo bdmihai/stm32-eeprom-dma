@@ -42,6 +42,9 @@ config:
 build: 
 	/usr/bin/qbs build -d build -f source/project.qbs --jobs 16 config:$(CONFIG_MCU) qbs.installRoot:bin qbs.targetPlatform:$(CONFIG_MCU)
 
+build-product: 
+	/usr/bin/qbs build -d build/$(PRODUCT) -f source/$(PRODUCT)/$(PRODUCT).qbs --jobs 1 config:$(CONFIG_MCU) qbs.installRoot:bin qbs.targetPlatform:$(CONFIG_MCU)
+
 build-with-commands:
 	/usr/bin/qbs build -d build -f source/project.qbs --jobs 16 config:$(CONFIG_MCU) --command-echo-mode command-line qbs.installRoot:bin qbs.targetPlatform:$(CONFIG_MCU)
 
