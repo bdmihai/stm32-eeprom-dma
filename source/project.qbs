@@ -29,7 +29,7 @@ import qbs
 
 Project {
     name: "eeprom-dma"
-    minimumQbsVersion: "1.16"
+    minimumQbsVersion: "1.22"
     qbsSearchPaths: "../qbs"
 
     references: [

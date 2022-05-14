@@ -1,6 +1,6 @@
 /*_____________________________________________________________________________
  │                                                                            |
- │ COPYRIGHT (C) 2021 Mihai Baneu                                             |
+ │ COPYRIGHT (C) 2022 Mihai Baneu                                             |
  │                                                                            |
  | Permission is hereby  granted,  free of charge,  to any person obtaining a |
  | copy of this software and associated documentation files (the "Software"), |
@@ -21,21 +21,40 @@
  | THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                 |
  |____________________________________________________________________________|
  |                                                                            |
- |  Author: Mihai Baneu                           Last modified: 20.Mai.2021  |
+ |  Author: Mihai Baneu                           Last modified: 08.Feb.2022  |
  |                                                                            |
  |___________________________________________________________________________*/
 
 #pragma once
 
-typedef struct dma_event_t {
+typedef enum {
+    dma_request_type_i2c_write,
+    dma_request_type_i2c_read,
+} dma_request_type;
+
+typedef enum {
+    dma_request_status_success,
+    dma_request_status_error,
+} dma_response_status;
+
+typedef struct dma_request_event_t {
+    dma_request_type type;
     uint16_t *buffer;
     uint16_t length;
-} dma_event_t;
+} dma_request_event_t;
 
-extern QueueHandle_t dma_queue;
+typedef struct dma_response_event_t {
+    dma_response_status status;
+    uint16_t *buffer;
+    uint16_t length;
+} dma_response_event_t;
+
+
+extern QueueHandle_t dma_request_queue;
+extern QueueHandle_t dma_response_queue;
 
 void dma_init();
 void dma_enable();
 void dma_disable();
 void dma_isr_handler();
-void vTaskDma(void *pvParameters);
+void dma_run(void *pvParameters);

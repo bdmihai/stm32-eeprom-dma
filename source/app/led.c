@@ -31,6 +31,11 @@
 #include "gpio.h"
 #include "led.h"
 
+void led_init()
+{
+
+}
+
 void led_run(void *pvParameters)
 {
     (void)pvParameters;

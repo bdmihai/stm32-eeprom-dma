@@ -33,6 +33,7 @@
 #include "gpio.h"
 #include "isr.h"
 #include "i2c.h"
+#include "dma.h"
 #include "printf.h"
 #include "led.h"
 #include "lcd.h"
@@ -44,6 +45,9 @@
 
 static void query_eeprom(uint16_t counter)
 {
+    dma_request_event_t dma_request_event;
+    dma_response_event_t dma_response_event;
+
     // calculate the read address of the eeprom
     uint8_t address = EEPROM_I2C_ADDRESS + (uint8_t)(counter >> 8);
     uint16_t nread, nwrite;
@@ -55,13 +59,20 @@ static void query_eeprom(uint16_t counter)
         sprintf(lcd_event.row1_txt, "%s", "Write error");
         sprintf(lcd_event.row2_txt, "%d", nwrite);
     } else {
-        nread = i2c_read(EEPROM_I2C_ADDRESS, (uint8_t *)lcd_event.row1_txt, 16);
-        if (nread != 16) {
-            sprintf(lcd_event.row1_txt, "%s [%d]", "Read error", nread);
+        xQueueSendToBack(dma_request_queue, &dma_request_event, (TickType_t) 1);
+        if (xQueueReceive(dma_response_queue, &dma_response_event, portMAX_DELAY) == pdPASS) {
+            nread = i2c_read(EEPROM_I2C_ADDRESS, (uint8_t *)lcd_event.row1_txt, 16);
+            if (nread != 16) {
+                sprintf(lcd_event.row1_txt, "%s [%d]", "Read error", nread);
+            }
         }
-        nread = i2c_read(EEPROM_I2C_ADDRESS, (uint8_t *)lcd_event.row2_txt, 16);
-        if (nread != 16) {
-            sprintf(lcd_event.row2_txt, "%s [%d]", "Read error", nread);
+
+        xQueueSendToBack(dma_request_queue, &dma_request_event, (TickType_t) 1);
+        if (xQueueReceive(dma_response_queue, &dma_response_event, portMAX_DELAY) == pdPASS) {
+            nread = i2c_read(EEPROM_I2C_ADDRESS, (uint8_t *)lcd_event.row2_txt, 16);
+            if (nread != 16) {
+                sprintf(lcd_event.row2_txt, "%s [%d]", "Read error", nread);
+            }
         }
     }
 
@@ -100,8 +111,11 @@ int main(void)
     /* initialize the i2c interface */
     i2c_init();
 
+    /* initialize the dma controller */
+    dma_init();
+
     /* init led handler */
-    lcd_init();
+    led_init();
 
     /* init lcd display */
     lcd_init();
@@ -112,6 +126,7 @@ int main(void)
     /* create the tasks specific to this application. */
     xTaskCreate(led_run,      "led",          configMINIMAL_STACK_SIZE,     NULL, 3, NULL);
     xTaskCreate(lcd_run,      "lcd",          configMINIMAL_STACK_SIZE*2,   NULL, 2, NULL);
+    xTaskCreate(dma_run,      "dma",          configMINIMAL_STACK_SIZE*2,   NULL, 2, NULL);
     xTaskCreate(user_handler, "user_handler", configMINIMAL_STACK_SIZE*2,   NULL, 2, NULL);
     xTaskCreate(rencoder_run, "rencoder",     configMINIMAL_STACK_SIZE,     NULL, 2, NULL);
 
