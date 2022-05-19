@@ -16,7 +16,8 @@
         "i2c.h": "c",
         "stm32f4xx_hal.h": "c",
         "compare": "c",
-        "type_traits": "c"
+        "type_traits": "c",
+        "stm32rtos.h": "c"
     },
     "Open files list": false,
     "Toggle terminal": false,

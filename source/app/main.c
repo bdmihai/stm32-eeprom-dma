@@ -21,12 +21,13 @@
  | THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                 |
  |____________________________________________________________________________|
  |                                                                            |
- |  Author: Mihai Baneu                           Last modified: 14.Nov.2021  |
+ |  Author: Mihai Baneu                           Last modified: 19.May.2022  |
  |                                                                            |
  |___________________________________________________________________________*/
 
 #include "stm32f4xx.h"
 #include "stm32rtos.h"
+#include "string.h"
 #include "task.h"
 #include "queue.h"
 #include "system.h"
@@ -47,31 +48,46 @@ static void query_eeprom(uint16_t counter)
 {
     dma_request_event_t dma_request_event;
     dma_response_event_t dma_response_event;
-
-    // calculate the read address of the eeprom
-    uint8_t address = EEPROM_I2C_ADDRESS + (uint8_t)(counter >> 8);
-    uint16_t nread, nwrite;
     lcd_event_t lcd_event = { {0}, {0} };
 
-    // read i2c eeprom
-    nwrite = i2c_write(address, (uint8_t *)&counter, 1);
-    if (nwrite != 1) {
-        sprintf(lcd_event.row1_txt, "%s", "Write error");
-        sprintf(lcd_event.row2_txt, "%d", nwrite);
-    } else {
-        xQueueSendToBack(dma_request_queue, &dma_request_event, (TickType_t) 1);
-        if (xQueueReceive(dma_response_queue, &dma_response_event, portMAX_DELAY) == pdPASS) {
-            nread = i2c_read(EEPROM_I2C_ADDRESS, (uint8_t *)lcd_event.row1_txt, 16);
-            if (nread != 16) {
-                sprintf(lcd_event.row1_txt, "%s [%d]", "Read error", nread);
-            }
+    // set the location for the read
+    dma_request_event.length = 1;
+    dma_request_event.type = dma_request_type_i2c_write;
+    dma_request_event.address = EEPROM_I2C_ADDRESS + (uint8_t)(counter >> 8); // calculate the read address of the eeprom
+    dma_request_event.buffer[0] = (uint8_t)counter;
+    xQueueSendToBack(dma_request_queue, &dma_request_event, (TickType_t) 1);
+    if (xQueueReceive(dma_response_queue, &dma_response_event, portMAX_DELAY) == pdPASS) {
+        if (dma_response_event.status != dma_request_status_success) {
+            sprintf(lcd_event.row1_txt, "%s [%d]", "Write error", dma_response_event.length);
+            sprintf(lcd_event.row2_txt, "   ---   ");
         }
+        else {
+            dma_request_event.length = 16;
+            dma_request_event.type = dma_request_type_i2c_read;
+            dma_request_event.address = EEPROM_I2C_ADDRESS;
+            xQueueSendToBack(dma_request_queue, &dma_request_event, (TickType_t) 1);
+            if (xQueueReceive(dma_response_queue, &dma_response_event, portMAX_DELAY) == pdPASS) {
+                if (dma_response_event.status != dma_request_status_success) {
+                    sprintf(lcd_event.row1_txt, "%s [%d]", "Read error", dma_response_event.length);
+                }
+                else {
+                    memset(lcd_event.row1_txt, 0, sizeof(lcd_event.row1_txt));
+                    memcpy(lcd_event.row1_txt, dma_response_event.buffer, dma_response_event.length);
+                }
+            }
 
-        xQueueSendToBack(dma_request_queue, &dma_request_event, (TickType_t) 1);
-        if (xQueueReceive(dma_response_queue, &dma_response_event, portMAX_DELAY) == pdPASS) {
-            nread = i2c_read(EEPROM_I2C_ADDRESS, (uint8_t *)lcd_event.row2_txt, 16);
-            if (nread != 16) {
-                sprintf(lcd_event.row2_txt, "%s [%d]", "Read error", nread);
+            dma_request_event.length = 16;
+            dma_request_event.type = dma_request_type_i2c_read;
+            dma_request_event.address = EEPROM_I2C_ADDRESS;
+            xQueueSendToBack(dma_request_queue, &dma_request_event, (TickType_t) 1);
+            if (xQueueReceive(dma_response_queue, &dma_response_event, portMAX_DELAY) == pdPASS) {
+                if (dma_response_event.status != dma_request_status_success) {
+                    sprintf(lcd_event.row2_txt, "%s [%d]", "Read error", dma_response_event.length);
+                }
+                else {
+                    memset(lcd_event.row2_txt, 0, sizeof(lcd_event.row2_txt));
+                    memcpy(lcd_event.row2_txt, dma_response_event.buffer, dma_response_event.length);
+                }
             }
         }
     }

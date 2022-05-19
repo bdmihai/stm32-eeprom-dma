@@ -21,7 +21,7 @@
  | THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                 |
  |____________________________________________________________________________|
  |                                                                            |
- |  Author: Mihai Baneu                           Last modified: 08.Feb.2022  |
+ |  Author: Mihai Baneu                           Last modified: 19.May.2022  |
  |                                                                            |
  |___________________________________________________________________________*/
 
@@ -29,6 +29,7 @@
 #include "stm32rtos.h"
 #include "queue.h"
 #include "dma.h"
+#include "i2c.h"
 
 /* Queue used to communicate dma messages. */
 QueueHandle_t dma_request_queue;
@@ -113,8 +114,17 @@ void dma_run(void *pvParameters)
         if (xQueueReceive(dma_request_queue, &req_event, portMAX_DELAY) == pdPASS) {
             dma_response_event_t res_event;
 
-            res_event.buffer = req_event.buffer;
-            res_event.length = req_event.length;
+            switch (req_event.type) {
+                case dma_request_type_i2c_write:
+                    res_event.length = i2c_write(req_event.address, (uint8_t *)req_event.buffer, req_event.length);
+                    res_event.status = (res_event.length == req_event.length) ? dma_request_status_success : dma_request_status_error;
+                    break;
+                case dma_request_type_i2c_read:
+                    res_event.length = i2c_read(req_event.address, (uint8_t *)res_event.buffer, req_event.length);
+                    res_event.status = (res_event.length == req_event.length) ? dma_request_status_success : dma_request_status_error;
+                    break;    
+
+            }
 
             xQueueSendToBack(dma_response_queue, &res_event, (TickType_t) 0);
         }

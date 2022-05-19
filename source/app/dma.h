@@ -21,7 +21,7 @@
  | THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                 |
  |____________________________________________________________________________|
  |                                                                            |
- |  Author: Mihai Baneu                           Last modified: 08.Feb.2022  |
+ |  Author: Mihai Baneu                           Last modified: 19.May.2022  |
  |                                                                            |
  |___________________________________________________________________________*/
 
@@ -39,16 +39,16 @@ typedef enum {
 
 typedef struct dma_request_event_t {
     dma_request_type type;
-    uint16_t *buffer;
-    uint16_t length;
+    uint8_t address;
+    uint8_t buffer[16];
+    uint8_t length;
 } dma_request_event_t;
 
 typedef struct dma_response_event_t {
     dma_response_status status;
-    uint16_t *buffer;
-    uint16_t length;
+    uint8_t buffer[16];
+    uint8_t length;
 } dma_response_event_t;
-
 
 extern QueueHandle_t dma_request_queue;
 extern QueueHandle_t dma_response_queue;
