@@ -50,11 +50,17 @@ typedef struct dma_response_event_t {
     uint8_t length;
 } dma_response_event_t;
 
+typedef struct dma_buffer_t {
+    uint8_t buffer[16];
+    uint8_t length;
+} dma_buffer_t;
+
 extern QueueHandle_t dma_request_queue;
 extern QueueHandle_t dma_response_queue;
 
 void dma_init();
 void dma_enable();
 void dma_disable();
-void dma_isr_handler();
+void dma_isr_rx_handler();
+void dma_isr_tx_handler();
 void dma_run(void *pvParameters);

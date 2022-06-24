@@ -21,7 +21,7 @@
  | THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                 |
  |____________________________________________________________________________|
  |                                                                            |
- |  Author: Mihai Baneu                           Last modified: 20.Mai.2021  |
+ |  Author: Mihai Baneu                           Last modified: 24.Mai.2022  |
  |                                                                            |
  |___________________________________________________________________________*/
 
@@ -35,6 +35,11 @@
 
  /* Queue used to communicate LCD update messages. */
 QueueHandle_t lcd_queue = NULL;
+
+void lcd_init()
+{
+    lcd_queue = xQueueCreate(2, sizeof(lcd_event_t));
+}
 
 void lcd_run(void *params)
 {
@@ -75,10 +80,4 @@ void lcd_run(void *params)
             st7066u_write_str(lcd_event.row2_txt);
         }
     }
-}
-
-
-void lcd_init()
-{
-    lcd_queue = xQueueCreate(2, sizeof(lcd_event_t));
 }

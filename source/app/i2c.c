@@ -123,3 +123,8 @@ uint16_t i2c_read(uint8_t address, uint8_t *buffer, uint16_t size)
 
     return size;
 }
+
+uint16_t i2c_dma_read(uint8_t address)
+{
+    
+}

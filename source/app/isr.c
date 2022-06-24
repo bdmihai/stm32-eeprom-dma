@@ -26,8 +26,11 @@
  |___________________________________________________________________________*/
 
 #include "stm32f4xx.h"
+#include "stm32rtos.h"
+#include "queue.h"
 #include "isr.h"
 #include "gpio.h"
+#include "dma.h"
 
 void isr_init()
 {
@@ -45,13 +48,17 @@ void isr_init()
     MODIFY_REG(EXTI->FTSR, EXTI_FTSR_TR10_Msk, EXTI_FTSR_TR10);
 
     /* enable interupt */
-    NVIC_SetPriority(EXTI0_IRQn,     NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 11 /* PreemptPriority */, 0 /* SubPriority */));
-    NVIC_SetPriority(EXTI1_IRQn,     NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 11 /* PreemptPriority */, 0 /* SubPriority */));
-    NVIC_SetPriority(EXTI15_10_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 11 /* PreemptPriority */, 0 /* SubPriority */));
+    NVIC_SetPriority(EXTI0_IRQn,        NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 11 /* PreemptPriority */, 0 /* SubPriority */));
+    NVIC_SetPriority(EXTI1_IRQn,        NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 11 /* PreemptPriority */, 0 /* SubPriority */));
+    NVIC_SetPriority(EXTI15_10_IRQn,    NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 11 /* PreemptPriority */, 0 /* SubPriority */));
+    NVIC_SetPriority(DMA1_Stream0_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 11 /* PreemptPriority */, 0 /* SubPriority */));
+    NVIC_SetPriority(DMA1_Stream1_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 11 /* PreemptPriority */, 0 /* SubPriority */));
 
     NVIC_EnableIRQ(EXTI0_IRQn);
     NVIC_EnableIRQ(EXTI1_IRQn);
     NVIC_EnableIRQ(EXTI15_10_IRQn);
+    NVIC_EnableIRQ(DMA1_Stream0_IRQn);
+    NVIC_EnableIRQ(DMA1_Stream1_IRQn);
 }
 
 void EXTI0_IRQHandler(void)
@@ -70,4 +77,14 @@ void EXTI15_10_IRQHandler(void)
 {
   gpio_handle_key();
   SET_BIT(EXTI->PR, EXTI_PR_PR10_Msk);
+}
+
+void DMA1_Stream0_IRQHandler(void)
+{
+  dma_isr_rx_handler();
+}
+
+void DMA1_Stream1_IRQHandler(void)
+{
+  dma_isr_tx_handler();
 }

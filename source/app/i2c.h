@@ -1,6 +1,6 @@
 /*_____________________________________________________________________________
  │                                                                            |
- │ COPYRIGHT (C) 2021 Mihai Baneu                                             |
+ │ COPYRIGHT (C) 2022 Mihai Baneu                                             |
  │                                                                            |
  | Permission is hereby  granted,  free of charge,  to any person obtaining a |
  | copy of this software and associated documentation files (the "Software"), |
@@ -21,7 +21,7 @@
  | THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                 |
  |____________________________________________________________________________|
  |                                                                            |
- |  Author: Mihai Baneu                           Last modified: 30.Jul.2021  |
+ |  Author: Mihai Baneu                           Last modified: 04.Jun.2022  |
  |                                                                            |
  |___________________________________________________________________________*/
 
@@ -31,3 +31,5 @@ void i2c_init();
 /* basic read/write */
 uint16_t i2c_write(uint8_t address, const uint8_t *buffer, uint16_t size);
 uint16_t i2c_read(uint8_t address, uint8_t *buffer, uint16_t size);
+
+uint16_t i2c_dma_read(uint8_t address);
