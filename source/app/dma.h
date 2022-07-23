@@ -21,7 +21,7 @@
  | THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                 |
  |____________________________________________________________________________|
  |                                                                            |
- |  Author: Mihai Baneu                           Last modified: 19.May.2022  |
+ |  Author: Mihai Baneu                           Last modified: 23.Jul.2022  |
  |                                                                            |
  |___________________________________________________________________________*/
 
@@ -59,8 +59,6 @@ extern QueueHandle_t dma_request_queue;
 extern QueueHandle_t dma_response_queue;
 
 void dma_init();
-void dma_enable();
-void dma_disable();
 void dma_isr_rx_handler();
 void dma_isr_tx_handler();
 void dma_run(void *pvParameters);

@@ -54,7 +54,7 @@ static void query_eeprom(uint16_t counter)
     dma_request_event.length = 1;
     dma_request_event.type = dma_request_type_i2c_write;
     dma_request_event.address = EEPROM_I2C_ADDRESS + (uint8_t)(counter >> 8); // calculate the read address of the eeprom
-    dma_request_event.buffer[0] = (uint8_t)counter;
+    dma_request_event.buffer[0] = (uint8_t)counter;                           // low part needs to be send as data / high byte needs to be send in address
     xQueueSendToBack(dma_request_queue, &dma_request_event, (TickType_t) 1);
     if (xQueueReceive(dma_response_queue, &dma_response_event, portMAX_DELAY) == pdPASS) {
         if (dma_response_event.status != dma_request_status_success) {

@@ -1,6 +1,6 @@
 /*_____________________________________________________________________________
  │                                                                            |
- │ COPYRIGHT (C) 2021 Mihai Baneu                                             |
+ │ COPYRIGHT (C) 2022 Mihai Baneu                                             |
  │                                                                            |
  | Permission is hereby  granted,  free of charge,  to any person obtaining a |
  | copy of this software and associated documentation files (the "Software"), |
@@ -21,7 +21,7 @@
  | THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                 |
  |____________________________________________________________________________|
  |                                                                            |
- |  Author: Mihai Baneu                           Last modified: 30.Jul.2021  |
+ |  Author: Mihai Baneu                           Last modified: 23.Jul.2022  |
  |                                                                            |
  |___________________________________________________________________________*/
 
@@ -42,9 +42,11 @@ void i2c_init()
     MODIFY_REG(I2C1->FLTR, I2C_FLTR_DNF_Msk, 0 << I2C_FLTR_DNF_Pos);            /* keep digital filter off */
 
     MODIFY_REG(I2C1->CR1, I2C_CR1_PE_Msk, I2C_CR1_PE);                          /* enable i2c */
+    MODIFY_REG(I2C1->CR2, I2C_CR2_DMAEN_Msk, I2C_CR2_DMAEN);                    /* enable i2c dma */
+    MODIFY_REG(I2C1->CR2, I2C_CR2_LAST_Msk,  I2C_CR2_LAST);                     /* enable i2c dma last NACK */
 }
 
-uint16_t i2c_write(uint8_t address, const uint8_t *buffer, uint16_t size)
+void i2c_start_write(uint8_t address)
 {
     // generate a start condition and wait for it to be sent
     MODIFY_REG(I2C1->CR1, I2C_CR1_START_Msk, I2C_CR1_START);
@@ -57,42 +59,16 @@ uint16_t i2c_write(uint8_t address, const uint8_t *buffer, uint16_t size)
     } while ((I2C1->SR1 & I2C_SR1_ADDR_Msk) != I2C_SR1_ADDR);
     do {
     } while ((I2C1->SR2 & I2C_SR2_MSL_Msk) != I2C_SR2_MSL);
-
-    // wait for TX ready
-    do {
-    } while ((I2C1->SR1 & I2C_SR1_TXE_Msk) != I2C_SR1_TXE);
-
-    for (uint16_t i = 0; i < size; i++) {
-        // write the data to the data register
-        I2C1->DR = buffer[i];
-
-        // wait for TX ready
-        do {
-        } while ((I2C1->SR1 & I2C_SR1_TXE_Msk) != I2C_SR1_TXE);
-    }
-
-    // wait for byte transfer finished
-    do {
-    } while ((I2C1->SR1 & I2C_SR1_BTF_Msk) != I2C_SR1_BTF);
-
-    // generate a stop condition
-    MODIFY_REG(I2C1->CR1, I2C_CR1_STOP_Msk, I2C_CR1_STOP);
-
-    // wait to go back to slave mode
-    do {
-    } while ((I2C1->SR2 & I2C_SR2_MSL_Msk) == I2C_SR2_MSL);
-
-    return size;
 }
 
-uint16_t i2c_read(uint8_t address, uint8_t *buffer, uint16_t size)
+void i2c_start_read(uint8_t address, uint16_t size)
 {
     // generate a start condition and wait for it to be sent
     MODIFY_REG(I2C1->CR1, I2C_CR1_START_Msk, I2C_CR1_START);
     do {
     } while ((I2C1->SR1 & I2C_SR1_SB_Msk) != I2C_SR1_SB);
 
-    // send address and wait for ADDR and TRA
+    // send address and wait for ADDR
     I2C1->DR = (address << 1) | 0x01;
     do {
     } while ((I2C1->SR1 & I2C_SR1_ADDR_Msk) != I2C_SR1_ADDR);
@@ -101,30 +77,9 @@ uint16_t i2c_read(uint8_t address, uint8_t *buffer, uint16_t size)
     do {
     } while ((I2C1->SR2 & I2C_SR2_MSL_Msk) != I2C_SR2_MSL);
 
-    for (uint16_t i = 0; i < size - 1; i++)
-    {
-        // wait for RX ready
-        do {
-        } while ((I2C1->SR1 & I2C_SR1_RXNE_Msk) != I2C_SR1_RXNE);
-
-        // read the data from the register
-        buffer[i] = I2C1->DR;
-    }
-
-    MODIFY_REG(I2C1->CR1, I2C_CR1_ACK_Msk, 0);
-    MODIFY_REG(I2C1->CR1, I2C_CR1_STOP_Msk, I2C_CR1_STOP);
-    
-    // wait for RX ready
-    do {
-    } while ((I2C1->SR1 & I2C_SR1_RXNE_Msk) != I2C_SR1_RXNE);
-
-    // read the data from the register
-    buffer[size - 1] = I2C1->DR;
-
-    return size;
 }
 
-uint16_t i2c_dma_read(uint8_t address)
+void i2c_stop()
 {
-    
+    MODIFY_REG(I2C1->CR1, I2C_CR1_STOP_Msk, I2C_CR1_STOP);
 }
